@@ -8,8 +8,8 @@
 
 static const int FIELD_WIDTH = 30;
 static const int FIELD_HEIGHT = 30;
-static const int FPS = 30; // フレームレート (FPS)
-static const int ITEM_SPAWN_INTERVAL = 50; // アイテム生成のフレーム間隔
+static const int FPS = 30;
+static const int ITEM_SPAWN_INTERVAL = 50;
 
 class GameObject {
 public:
@@ -31,7 +31,7 @@ public:
 class Player : public GameObject {
 public:
     Player(int startX, int startY)
-        : GameObject(startX, startY, 'A', 7) {} // 白色
+        : GameObject(startX, startY, 'A', 7) {}
 
     void update() override {
         if (_kbhit()) {
@@ -51,7 +51,7 @@ public:
 class Enemy : public GameObject {
 public:
     Enemy(int startX, int startY)
-        : GameObject(startX, startY, 'E', 4) {} // 赤色
+        : GameObject(startX, startY, 'E', 4) {}
 
     void update() override {
         y += 1;
@@ -67,26 +67,25 @@ public:
 
 class Item : public GameObject {
 private:
-    int updateInterval;  // 更新間隔
-    int updateCounter;   // カウンタ
-    bool active;         // アイテムのアクティブ状態
+    int updateInterval;
+    int updateCounter;
+    bool active;
 
 public:
     Item(int startX, int startY, int interval = 10)
-        : GameObject(startX, startY, 'I', 14), updateInterval(interval), updateCounter(0), active(true) {} // 青色
+        : GameObject(startX, startY, 'I', 14), updateInterval(interval), updateCounter(0), active(true) {}
 
     void update() override {
         if (!active) return;
 
         updateCounter++;
 
-        // 更新間隔に達したら位置を更新
         if (updateCounter >= updateInterval) {
             y += 1;
             if (y >= FIELD_HEIGHT) {
-                y = FIELD_HEIGHT; // 画面下に固定
+                y = FIELD_HEIGHT;
             }
-            updateCounter = 0; // カウンタリセット
+            updateCounter = 0;
         }
     }
 
@@ -101,9 +100,9 @@ public:
 class Game {
     std::vector<GameObject*> objects;
     char field[FIELD_HEIGHT][FIELD_WIDTH];
-    int itemSpawnCounter; // アイテム生成カウンタ
-    bool gameOverFlag;    // ゲームオーバーフラグ
-    int score;            // スコア
+    int itemSpawnCounter;
+    bool gameOverFlag;
+    int score;
 
     void clearField() {
         for (int i = 0; i < FIELD_HEIGHT; ++i) {
@@ -134,17 +133,17 @@ class Game {
                     }
                 }
                 if (!isColored) {
-                    SetConsoleTextAttribute(hConsole, 7); // デフォルトの色に戻す
+                    SetConsoleTextAttribute(hConsole, 7);
                     std::cout << field[i][j];
                 }
             }
         }
 
-        SetConsoleTextAttribute(hConsole, 7); // デフォルトの色に戻す
+        SetConsoleTextAttribute(hConsole, 7);
     }
 
     void spawnItem() {
-        objects.push_back(new Item(rand() % FIELD_WIDTH, 0)); // 新しいアイテムを画面上部に生成
+        objects.push_back(new Item(rand() % FIELD_WIDTH, 0));
     }
 
 public:
@@ -154,7 +153,7 @@ public:
         for (int i = 0; i < 5; ++i) {
             objects.push_back(new Enemy(rand() % FIELD_WIDTH, rand() % FIELD_HEIGHT));
         }
-        spawnItem(); // 初期のアイテム生成
+        spawnItem();
     }
 
     ~Game() {
@@ -168,25 +167,22 @@ public:
             (*it)->update();
         }
 
-        // プレイヤーとアイテムの衝突をチェック
         Player* player = dynamic_cast<Player*>(objects[0]);
         for (auto it = objects.begin(); it != objects.end(); ++it) {
             if (auto item = dynamic_cast<Item*>(*it)) {
                 if (item->isActive() && player->x == item->x && player->y == item->y) {
-                    item->setActive(false); // アイテムが消える
-                    score++; // スコアを加算
+                    item->setActive(false);
+                    score++;
                 }
             }
         }
 
-        // アイテムの生成カウンタを更新
         itemSpawnCounter++;
         if (itemSpawnCounter >= ITEM_SPAWN_INTERVAL) {
             itemSpawnCounter = 0;
-            spawnItem(); // 新しいアイテムを生成
+            spawnItem();
         }
 
-        // ゲームオーバー状態のチェック
         gameOverFlag = isGameOver();
     }
 
@@ -197,15 +193,14 @@ public:
             GameObject* obj = *it;
             if (!obj->isActive()) continue;
 
-            // プレイヤーと敵が同じ位置にいるかチェック
+        
             Player* player = dynamic_cast<Player*>(objects[0]);
             if (player && player->x == obj->x && player->y == obj->y) {
                 if (dynamic_cast<Enemy*>(obj)) {
-                    return true; // プレイヤーが敵に当たった場合
+                    return true;
                 }
             }
 
-            // アイテムが画面下に達したかチェック
             if (auto item = dynamic_cast<Item*>(obj)) {
                 if (item->isOffScreen()) {
                     itemOffScreen = true;
@@ -229,13 +224,12 @@ public:
             }
         }
 
-        // ゲームオーバー表示
         HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
         COORD cursorPos = { 0, FIELD_HEIGHT };
         SetConsoleCursorPosition(hConsole, cursorPos);
-        SetConsoleTextAttribute(hConsole, 7); // デフォルトの色に戻す
+        SetConsoleTextAttribute(hConsole, 7);
         std::cout << "Game Over! Score: " << score << std::endl;
-        Sleep(2000); // 2秒待機してから終了
+        Sleep(2000);
     }
 };
 
